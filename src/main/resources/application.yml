@@ -1,0 +1,72 @@
+server:
+  port: ${PORT:8080}
+  forward-headers-strategy: framework
+
+spring:
+  application:
+    name: bairro-vivo-api
+  datasource:
+    url: ${ORACLE_URL:jdbc:oracle:thin:@//localhost:1521/FREEPDB1}
+    username: ${ORACLE_USER:}
+    password: ${ORACLE_PASSWORD:}
+    driver-class-name: oracle.jdbc.OracleDriver
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        format_sql: true
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    listener:
+      simple:
+        default-requeue-rejected: false
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:disabled}
+      chat:
+        options:
+          model: ${OPENAI_MODEL:gpt-4o-mini}
+          temperature: 0.1
+          max-tokens: 1000
+
+bairro-vivo:
+  security:
+    issuer: ${JWT_ISSUER:bairro-vivo-java}
+    audience: ${JWT_AUDIENCE:bairro-vivo-apis}
+    token-ttl: ${JWT_TTL:PT1H}
+    private-key-path: ${JWT_PRIVATE_KEY_PATH:}
+    public-key-path: ${JWT_PUBLIC_KEY_PATH:}
+  admin:
+    email: ${BAIRROVIVO_ADMIN_EMAIL:}
+    password: ${BAIRROVIVO_ADMIN_PASSWORD:}
+  dotnet:
+    base-url: ${DOTNET_API_BASE_URL:http://localhost:5000}
+    service-token: ${DOTNET_SERVICE_TOKEN:}
+    occurrence-path: ${DOTNET_OCCURRENCE_PATH:/api/v1/ocorrencias/{id}}
+  ai:
+    enabled: ${BAIRROVIVO_AI_ENABLED:false}
+    model-name: ${OPENAI_MODEL:gpt-4o-mini}
+
+app:
+  rabbitmq:
+    exchange: bairro-vivo.events
+    queue: bairro-vivo.user-registered
+    routing-key: usuario.cadastrado
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
