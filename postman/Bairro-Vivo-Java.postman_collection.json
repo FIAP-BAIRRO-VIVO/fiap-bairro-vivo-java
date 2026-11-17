@@ -1,0 +1,653 @@
+{
+  "info": {
+    "_postman_id": "51b119aa-f71a-4c7a-b06d-fd15f7c42cb7",
+    "name": "Bairro Vivo - Java API",
+    "description": "Colecao Postman da API Java do Bairro Vivo. Importar este arquivo no Postman e selecionar a variavel baseUrl. O cadastro/login salva accessToken; as requisicoes privadas herdam esse bearer token. A API .NET, Oracle, RabbitMQ e o modelo de IA precisam estar configurados para os fluxos correspondentes.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "email",
+      "value": "cidadao@example.com",
+      "type": "string"
+    },
+    {
+      "key": "senha",
+      "value": "troque-esta-senha-123",
+      "type": "string"
+    },
+    {
+      "key": "nome",
+      "value": "Cidadao de teste",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "localId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "ocorrenciaId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "orientacaoId",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "page",
+      "value": "0",
+      "type": "string"
+    },
+    {
+      "key": "pageSize",
+      "value": "10",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Autenticacao",
+      "item": [
+        {
+          "name": "Cadastrar cidadao",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const email = pm.collectionVariables.get('email') || 'cidadao@example.com';",
+                  "pm.collectionVariables.set('email', email);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Cadastro concluido', function () { pm.response.to.have.status(201); });",
+                  "const body = pm.response.json();",
+                  "if (body.accessToken) pm.collectionVariables.set('accessToken', body.accessToken);",
+                  "if (body.usuario && body.usuario.id) pm.collectionVariables.set('userId', body.usuario.id);",
+                  "pm.test('Cadastro publico recebe papel CIDADAO', function () { pm.expect(body.usuario.papel).to.eql('CIDADAO'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"{{nome}}\",\n  \"email\": \"{{email}}\",\n  \"senha\": \"{{senha}}\",\n  \"confirmacaoSenha\": \"{{senha}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/registrar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "registrar"
+              ]
+            },
+            "description": "Cria uma conta CIDADAO e salva o accessToken retornado. O email precisa ser unico; ajuste a variavel email antes de repetir o cadastro."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login concluido', function () { pm.response.to.have.status(200); });",
+                  "const body = pm.response.json();",
+                  "if (body.accessToken) pm.collectionVariables.set('accessToken', body.accessToken);",
+                  "if (body.usuario && body.usuario.id) pm.collectionVariables.set('userId', body.usuario.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"senha\": \"{{senha}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "JWKS publico",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/.well-known/jwks.json",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                ".well-known",
+                "jwks.json"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Perfil e preferencias",
+      "item": [
+        {
+          "name": "Consultar meu perfil",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usuarios/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "usuarios",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar meu perfil",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"{{nome}} Atualizado\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usuarios/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "usuarios",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Desativar minha conta (irreversivel)",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usuarios/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "usuarios",
+                "me"
+              ]
+            },
+            "description": "Desativa logicamente a conta. O token deixa de ser aceito. Execute somente quando realmente desejar desativar este usuario de teste."
+          },
+          "response": []
+        },
+        {
+          "name": "Consultar preferencias",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usuarios/me/preferencias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "usuarios",
+                "me",
+                "preferencias"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar preferencias",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tema\": \"SISTEMA\",\n  \"altoContraste\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usuarios/me/preferencias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "usuarios",
+                "me",
+                "preferencias"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Restaurar preferencias padrao",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usuarios/me/preferencias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "usuarios",
+                "me",
+                "preferencias"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Locais favoritos",
+      "item": [
+        {
+          "name": "Listar favoritos (paginado)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usuarios/me/locais-favoritos?page={{page}}&size={{pageSize}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "usuarios",
+                "me",
+                "locais-favoritos"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "{{page}}"
+                },
+                {
+                  "key": "size",
+                  "value": "{{pageSize}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar favorito",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Favorito criado', function () { pm.response.to.have.status(201); });",
+                  "const body = pm.response.json();",
+                  "if (body.id) pm.collectionVariables.set('localId', body.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"apelido\": \"Casa\",\n  \"latitude\": -23.5505200,\n  \"longitude\": -46.6333080\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usuarios/me/locais-favoritos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "usuarios",
+                "me",
+                "locais-favoritos"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Obter favorito",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usuarios/me/locais-favoritos/{{localId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "usuarios",
+                "me",
+                "locais-favoritos",
+                "{{localId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar favorito",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"apelido\": \"Trabalho\",\n  \"latitude\": -23.5600000,\n  \"longitude\": -46.6500000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usuarios/me/locais-favoritos/{{localId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "usuarios",
+                "me",
+                "locais-favoritos",
+                "{{localId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Excluir favorito",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/usuarios/me/locais-favoritos/{{localId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "usuarios",
+                "me",
+                "locais-favoritos",
+                "{{localId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Orientacoes com IA",
+      "item": [
+        {
+          "name": "Solicitar orientacao para ocorrencia existente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ocorrenciaId\": \"{{ocorrenciaId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/ia/orientacoes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ia",
+                "orientacoes"
+              ]
+            },
+            "description": "Requer papel CIDADAO, uma ocorrencia legivel na API .NET, Oracle com fontes aprovadas e BAIRROVIVO_AI_ENABLED=true para gerar uma orientacao."
+          },
+          "response": []
+        },
+        {
+          "name": "Listar orientacoes publicas da ocorrencia",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/ia/orientacoes/ocorrencias/{{ocorrenciaId}}?page={{page}}&size={{pageSize}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ia",
+                "orientacoes",
+                "ocorrencias",
+                "{{ocorrenciaId}}"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "{{page}}"
+                },
+                {
+                  "key": "size",
+                  "value": "{{pageSize}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Obter orientacao publica",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/ia/orientacoes/{{orientacaoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "ia",
+                "orientacoes",
+                "{{orientacaoId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Administracao (somente ADMIN)",
+      "item": [
+        {
+          "name": "Health de dependencias",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "health"
+              ]
+            },
+            "description": "Requer token de conta ADMIN provisionada pela equipe. O cadastro publico cria somente CIDADAO; usando o token de cidadao, a resposta esperada e 403."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
