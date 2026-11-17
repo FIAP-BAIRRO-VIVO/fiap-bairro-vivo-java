@@ -55,6 +55,8 @@ O exemplo nao inclui credenciais nem dados seed. O Oracle deve conter as tabelas
 
 Prefixo: `/api/v1`. Swagger UI em `/swagger-ui.html`.
 
+A colecao importavel do Postman esta em `postman/Bairro-Vivo-Java.postman_collection.json`.
+
 | Metodo | Rota | Acesso |
 |---|---|---|
 | `POST` | `/auth/registrar` | Publico; cria sempre `CIDADAO` e retorna JWT |

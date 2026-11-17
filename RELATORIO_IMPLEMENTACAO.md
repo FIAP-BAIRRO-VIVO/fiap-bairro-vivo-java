@@ -13,6 +13,7 @@
 - Fluxo de orientacao cidada: consulta a ocorrencia na API .NET, recuperacao de trechos oficiais aprovados, filtro de canais verificados, Spring AI opcional com protecao contra instrucoes maliciosas no relato e persistencia via `PKG_BASE_IA.PR_REGISTRAR_ORIENTACAO`.
 - Validacao de `iss`, `aud`, `exp` e conta ativa nos JWT; limite inicial de cinco solicitacoes de orientacao por usuario/minuto, em memoria por instancia.
 - Configuracao local, Docker Compose para RabbitMQ, orientacoes de seguranca e matriz de rotas no README.
+- Colecao Postman importavel com 18 requisicoes para os endpoints implementados, variaveis de ambiente/colecao e captura automatica do JWT apos cadastro ou login.
 
 ## Verificacao e limitacoes
 
