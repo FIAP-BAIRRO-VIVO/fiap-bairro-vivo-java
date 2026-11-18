@@ -1,0 +1,82 @@
+trigger:
+  branches:
+    include:
+      - master
+
+variables:
+  azureSubscription: '51b2513c-7c84-4a43-9e4b-f373eb3e761c'
+  webAppName: 'bairro-vivo-java-566385'
+  environmentName: 'bairro-vivo-java-566385'
+
+stages:
+- stage: Build
+  displayName: Build e Testes (CI)
+  jobs:
+  - job: MavenPackageAndPublishArtifacts
+    displayName: Maven Package, Testes e Artefatos
+    pool:
+      name: Default
+
+    steps:
+    - task: Maven@4
+      displayName: 'Maven Package e Testes'
+      inputs:
+        mavenPomFile: 'pom.xml'
+        mavenOptions: '-Xmx3072m'
+        javaHomeOption: 'Path'
+        jdkDirectory: '/usr/lib/jvm/java-21-openjdk-amd64'
+        publishJUnitResults: true
+        testResultsFiles: '**/surefire-reports/TEST-*.xml'
+        goals: 'clean package'
+
+    - task: CopyFiles@2
+      displayName: 'Copiar pacote para staging'
+      inputs:
+        SourceFolder: '$(System.DefaultWorkingDirectory)'
+        Contents: '**/target/*.jar'
+        TargetFolder: $(Build.ArtifactStagingDirectory)
+
+    - upload: $(Build.ArtifactStagingDirectory)
+      displayName: 'Publicar artefato drop'
+      artifact: drop
+
+- stage: Deploy
+  displayName: Release (Deploy no Web App)
+  dependsOn: Build
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+  jobs:
+  - deployment: DeployLinuxWebApp
+    displayName: Deploy Linux Web App
+    environment: $(environmentName)
+    pool:
+      name: Default
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureWebApp@1
+            displayName: 'Deploy no Web App $(webAppName)'
+            inputs:
+              azureSubscription: $(azureSubscription)
+              appType: webAppLinux
+              appName: $(webAppName)
+              package: '$(Pipeline.Workspace)/drop/**/target/*.jar'
+              appSettings: >-
+                -ORACLE_URL "$(ORACLE_URL)"
+                -ORACLE_USER "$(ORACLE_USER)"
+                -ORACLE_PASSWORD "$(ORACLE_PASSWORD)"
+                -JWT_ISSUER "$(JWT_ISSUER)"
+                -JWT_AUDIENCE "$(JWT_AUDIENCE)"
+                -JWT_TTL "$(JWT_TTL)"
+                -JWT_PRIVATE_KEY_PATH "$(JWT_PRIVATE_KEY_PATH)"
+                -JWT_PUBLIC_KEY_PATH "$(JWT_PUBLIC_KEY_PATH)"
+                -RABBITMQ_HOST "$(RABBITMQ_HOST)"
+                -RABBITMQ_PORT "$(RABBITMQ_PORT)"
+                -RABBITMQ_USER "$(RABBITMQ_USER)"
+                -RABBITMQ_PASSWORD "$(RABBITMQ_PASSWORD)"
+                -DOTNET_API_BASE_URL "$(DOTNET_API_BASE_URL)"
+                -DOTNET_OCCURRENCE_PATH "$(DOTNET_OCCURRENCE_PATH)"
+                -DOTNET_SERVICE_TOKEN "$(DOTNET_SERVICE_TOKEN)"
+                -BAIRROVIVO_AI_ENABLED "$(BAIRROVIVO_AI_ENABLED)"
+                -OPENAI_API_KEY "$(OPENAI_API_KEY)"
+                -OPENAI_MODEL "$(OPENAI_MODEL)"
