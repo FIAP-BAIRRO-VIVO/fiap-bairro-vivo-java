@@ -1,4 +1,4 @@
-package br.com.bairrovivo.service.ia;
+package br.com.bairrovivo.dto.ia;
 
 public record OcorrenciaContexto(
         Long id,

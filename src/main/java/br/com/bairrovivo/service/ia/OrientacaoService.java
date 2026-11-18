@@ -5,10 +5,12 @@ import br.com.bairrovivo.domain.OrientacaoIA;
 import br.com.bairrovivo.dto.ia.CanalResposta;
 import br.com.bairrovivo.dto.ia.FonteResposta;
 import br.com.bairrovivo.dto.ia.MunicipioResposta;
+import br.com.bairrovivo.dto.ia.OcorrenciaContexto;
 import br.com.bairrovivo.dto.ia.OrientacaoResposta;
 import br.com.bairrovivo.dto.ia.OrientacaoResumo;
 import br.com.bairrovivo.dto.PaginaResposta;
 import br.com.bairrovivo.exception.ApiException;
+import br.com.bairrovivo.repository.OcorrenciaRepository;
 import br.com.bairrovivo.repository.OrientacaoIARepository;
 import br.com.bairrovivo.repository.ServicoRagRepository;
 import br.com.bairrovivo.repository.ServicoRagView;
@@ -33,9 +35,9 @@ public class OrientacaoService {
     private static final String RESPOSTA_SEM_FONTE =
             "Nao encontramos fontes oficiais verificadas para esta localidade e categoria.";
     private static final String RESPOSTA_LOCALIDADE =
-            "Nao foi possivel confirmar o municipio da ocorrencia. Confira a localizacao com a API de comunidade.";
+            "Nao foi possivel confirmar o municipio da ocorrencia na base de dados.";
 
-    private final OcorrenciaClient ocorrencias;
+    private final OcorrenciaRepository ocorrencias;
     private final TrechoRagRepository trechos;
     private final ServicoRagRepository servicos;
     private final OrientacaoPersistence persistence;
@@ -46,7 +48,7 @@ public class OrientacaoService {
     private final String modelName;
 
     public OrientacaoService(
-            OcorrenciaClient ocorrencias,
+            OcorrenciaRepository ocorrencias,
             TrechoRagRepository trechos,
             ServicoRagRepository servicos,
             OrientacaoPersistence persistence,
@@ -69,7 +71,9 @@ public class OrientacaoService {
     @Transactional
     public OrientacaoResposta solicitar(Long usuarioId, Long ocorrenciaId) {
         rateLimiter.verificar(usuarioId);
-        OcorrenciaContexto ocorrencia = ocorrencias.buscar(ocorrenciaId);
+        OcorrenciaContexto ocorrencia = ocorrencias.buscarContexto(ocorrenciaId)
+                .orElseThrow(() -> new ApiException("OCORRENCIA_NAO_ENCONTRADA",
+                        "A ocorrencia nao foi encontrada na base de dados.", HttpStatus.NOT_FOUND));
         if (ocorrencia.municipioId() == null || ocorrencia.municipio() == null || ocorrencia.uf() == null) {
             return registrarFallback(ocorrencia, usuarioId, EstadoOrientacao.LOCALIDADE_NAO_CONFIRMADA,
                     RESPOSTA_LOCALIDADE);

@@ -1,6 +1,7 @@
 package br.com.bairrovivo.service.ia;
 
 import br.com.bairrovivo.repository.TrechoRagView;
+import br.com.bairrovivo.dto.ia.OcorrenciaContexto;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

@@ -11,6 +11,9 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.jdbc.core.JdbcTemplate;
+import br.com.bairrovivo.dto.ia.OcorrenciaContexto;
+import br.com.bairrovivo.repository.OcorrenciaRepository;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -35,6 +38,12 @@ class ApiSmokeTest {
 
     @Autowired
     private TestRestTemplate rest;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private OcorrenciaRepository ocorrencias;
 
     @LocalServerPort
     private int port;
@@ -100,6 +109,87 @@ class ApiSmokeTest {
         assertEquals(HttpStatus.NO_CONTENT, deactivation.getStatusCode());
         assertEquals(HttpStatus.UNAUTHORIZED, deactivatedProfile.getStatusCode());
         assertFalse(deactivatedProfile.getBody().path("correlationId").asText().isBlank());
+    }
+
+    @Test
+    void readsOccurrenceContextFromSharedDatabaseAndSkipsDeletedOccurrences() {
+        createOccurrenceTables();
+        jdbcTemplate.update("INSERT INTO TB_MUNICIPIO (ID_MUNICIPIO, NOME, UF) VALUES (?, ?, ?)",
+                3550308L, "São Paulo", "SP");
+        jdbcTemplate.update("INSERT INTO TB_CATEGORIA (ID_CATEGORIA, NOME) VALUES (?, ?)",
+                12L, "Via pública");
+        jdbcTemplate.update("""
+                INSERT INTO TB_OCORRENCIA
+                    (ID_OCORRENCIA, ID_CATEGORIA, ID_MUNICIPIO, TITULO, DESCRICAO, FL_EXCLUIDA)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """, 101L, 12L, 3550308L, "Buraco na via", "Buraco próximo ao cruzamento.", "N");
+        jdbcTemplate.update("""
+                INSERT INTO TB_OCORRENCIA
+                    (ID_OCORRENCIA, ID_CATEGORIA, ID_MUNICIPIO, TITULO, DESCRICAO, FL_EXCLUIDA)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """, 102L, 12L, 3550308L, "Ocorrência removida", "Descrição", "S");
+
+        OcorrenciaContexto contexto = ocorrencias.buscarContexto(101L).orElseThrow();
+
+        assertEquals(101L, contexto.id());
+        assertEquals("Buraco na via", contexto.titulo());
+        assertEquals("Buraco próximo ao cruzamento.", contexto.descricao());
+        assertEquals(12L, contexto.categoriaId());
+        assertEquals("Via pública", contexto.categoria());
+        assertEquals(3550308L, contexto.municipioId());
+        assertEquals("São Paulo", contexto.municipio());
+        assertEquals("SP", contexto.uf());
+        assertFalse(ocorrencias.buscarContexto(102L).isPresent());
+        assertFalse(ocorrencias.buscarContexto(999L).isPresent());
+    }
+
+    @Test
+    void returnsNotFoundWhenOccurrenceIsAbsentFromSharedDatabase() {
+        createOccurrenceTables();
+        Map<String, Object> registrationRequest = Map.of(
+                "nome", "Maria Teste",
+                "email", "maria.occurrence-smoke@example.com",
+                "senha", "senha-segura-123",
+                "confirmacaoSenha", "senha-segura-123");
+        JsonNode registration = rest.postForObject(
+                url("/api/v1/auth/registrar"), registrationRequest, JsonNode.class);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(registration.path("accessToken").asText());
+        ResponseEntity<JsonNode> response = rest.exchange(
+                url("/api/v1/ia/orientacoes"),
+                HttpMethod.POST,
+                new HttpEntity<>(Map.of("ocorrenciaId", 999L), headers),
+                JsonNode.class);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("OCORRENCIA_NAO_ENCONTRADA", response.getBody().path("codigo").asText());
+    }
+
+    private void createOccurrenceTables() {
+        jdbcTemplate.execute("""
+                CREATE TABLE IF NOT EXISTS TB_MUNICIPIO (
+                    ID_MUNICIPIO BIGINT PRIMARY KEY,
+                    NOME VARCHAR(120) NOT NULL,
+                    UF CHAR(2) NOT NULL
+                )
+                """);
+        jdbcTemplate.execute("""
+                CREATE TABLE IF NOT EXISTS TB_CATEGORIA (
+                    ID_CATEGORIA BIGINT PRIMARY KEY,
+                    NOME VARCHAR(100) NOT NULL
+                )
+                """);
+        jdbcTemplate.execute("""
+                CREATE TABLE IF NOT EXISTS TB_OCORRENCIA (
+                    ID_OCORRENCIA BIGINT PRIMARY KEY,
+                    ID_CATEGORIA BIGINT NOT NULL,
+                    ID_MUNICIPIO BIGINT NOT NULL,
+                    TITULO VARCHAR(150) NOT NULL,
+                    DESCRICAO CLOB NOT NULL,
+                    FL_EXCLUIDA CHAR(1) NOT NULL
+                )
+                """);
     }
 
     private String url(String path) {

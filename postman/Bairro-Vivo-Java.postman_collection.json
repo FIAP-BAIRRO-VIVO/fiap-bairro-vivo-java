@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "51b119aa-f71a-4c7a-b06d-fd15f7c42cb7",
     "name": "Bairro Vivo - Java API",
-    "description": "Colecao Postman da API Java do Bairro Vivo. Importar este arquivo no Postman e selecionar a variavel baseUrl. O cadastro/login salva accessToken; as requisicoes privadas herdam esse bearer token. A API .NET, Oracle, RabbitMQ e o modelo de IA precisam estar configurados para os fluxos correspondentes.",
+    "description": "Colecao Postman da API Java do Bairro Vivo. Importar este arquivo no Postman e selecionar a variavel baseUrl. O cadastro/login salva accessToken; as requisicoes privadas herdam esse bearer token. O Oracle compartilhado, RabbitMQ e o modelo de IA precisam estar configurados para os fluxos correspondentes. A Java consulta ocorrencias ja gravadas no Oracle pela API .NET.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "version": "1.0.0"
   },
@@ -561,7 +561,7 @@
                 "orientacoes"
               ]
             },
-            "description": "Requer papel CIDADAO, uma ocorrencia legivel na API .NET, Oracle com fontes aprovadas e BAIRROVIVO_AI_ENABLED=true para gerar uma orientacao."
+            "description": "Requer papel CIDADAO, uma ocorrencia nao excluida ja gravada nas tabelas compartilhadas do Oracle, fontes aprovadas e BAIRROVIVO_AI_ENABLED=true para gerar uma orientacao."
           },
           "response": []
         },
