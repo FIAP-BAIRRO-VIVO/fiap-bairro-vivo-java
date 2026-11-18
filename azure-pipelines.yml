@@ -7,7 +7,6 @@ variables:
   azureSubscription: '51b2513c-7c84-4a43-9e4b-f373eb3e761c'
   webAppName: 'bairro-vivo-java-566385'
   environmentName: 'bairro-vivo-java-566385'
-  vmImageName: 'ubuntu-latest'
 
 stages:
 - stage: Build
@@ -16,7 +15,7 @@ stages:
   - job: MavenPackageAndPublishArtifacts
     displayName: Maven Package, Testes e Artefatos
     pool:
-      vmImage: $(vmImageName)
+      name: Default
 
     steps:
     - task: Maven@4
@@ -24,9 +23,8 @@ stages:
       inputs:
         mavenPomFile: 'pom.xml'
         mavenOptions: '-Xmx3072m'
-        javaHomeOption: 'JDKVersion'
-        jdkVersionOption: '1.17'
-        jdkArchitectureOption: 'x64'
+        javaHomeOption: 'Path'
+        jdkDirectory: '/usr/lib/jvm/java-21-openjdk-amd64'
         publishJUnitResults: true
         testResultsFiles: '**/surefire-reports/TEST-*.xml'
         goals: 'clean package'
@@ -51,7 +49,7 @@ stages:
     displayName: Deploy Linux Web App
     environment: $(environmentName)
     pool:
-      vmImage: $(vmImageName)
+      name: Default
     strategy:
       runOnce:
         deploy:
