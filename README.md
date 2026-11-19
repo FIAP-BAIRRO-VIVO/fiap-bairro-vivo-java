@@ -77,6 +77,7 @@ Defina as variaveis de ambiente conforme necessario:
 | `JWT_PRIVATE_KEY_PATH`, `JWT_PUBLIC_KEY_PATH` | Caminhos de chaves PEM RSA (PKCS#8 e X.509, respectivamente) |
 | `JWT_ISSUER`, `JWT_AUDIENCE`, `JWT_TTL` | Contrato JWT compartilhado com .NET |
 | `RABBITMQ_HOST`, `RABBITMQ_PORT`, `RABBITMQ_USER`, `RABBITMQ_PASSWORD` | Broker RabbitMQ |
+| `BAIRROVIVO_CORS_ALLOWED_ORIGINS` | Origens web permitidas, separadas por virgula; padrao `http://localhost:3000,http://localhost:5173` |
 | `BAIRROVIVO_AI_ENABLED` | `true` para habilitar geracao com Spring AI; padrao `false` |
 | `OPENAI_API_KEY`, `OPENAI_MODEL` | Credenciais/modelo usados pelo Spring AI |
 | `BAIRROVIVO_ADMIN_EMAIL`, `BAIRROVIVO_ADMIN_PASSWORD` | Seed opcional de ADMIN; senha deve ter ao menos 12 caracteres |

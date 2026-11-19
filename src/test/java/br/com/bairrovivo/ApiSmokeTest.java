@@ -27,10 +27,12 @@ import java.nio.file.Path;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class ApiSmokeTest {
@@ -117,6 +119,35 @@ class ApiSmokeTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertFalse(response.getBody().path("paths").isEmpty());
+    }
+
+    @Test
+    void allowsCorsPreflightFromConfiguredFrontendOrigin() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setOrigin("http://localhost:5173");
+        headers.setAccessControlRequestMethod(HttpMethod.POST);
+        headers.setAccessControlRequestHeaders(List.of("authorization", "content-type", "x-correlation-id"));
+
+        ResponseEntity<Void> response = rest.exchange(
+                url("/api/v1/usuarios/me"), HttpMethod.OPTIONS, new HttpEntity<>(headers), Void.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("http://localhost:5173",
+                response.getHeaders().getFirst(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
+        assertTrue(response.getHeaders().getAccessControlAllowMethods().contains(HttpMethod.POST));
+    }
+
+    @Test
+    void rejectsCorsPreflightFromUnconfiguredOrigin() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setOrigin("https://untrusted.example");
+        headers.setAccessControlRequestMethod(HttpMethod.POST);
+
+        ResponseEntity<Void> response = rest.exchange(
+                url("/api/v1/usuarios/me"), HttpMethod.OPTIONS, new HttpEntity<>(headers), Void.class);
+
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        assertFalse(response.getHeaders().containsKey(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN));
     }
 
     @Test
