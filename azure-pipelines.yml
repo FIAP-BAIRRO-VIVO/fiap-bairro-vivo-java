@@ -4,7 +4,7 @@ trigger:
       - master
 
 variables:
-  azureSubscription: '51b2513c-7c84-4a43-9e4b-f373eb3e761c'
+  azureSubscription: 'azurenovasubscription'
   webAppName: 'bairro-vivo-java-566385'
   environmentName: 'bairro-vivo-java-566385'
 
