@@ -112,6 +112,14 @@ class ApiSmokeTest {
     }
 
     @Test
+    void servesOpenApiSpecification() {
+        ResponseEntity<JsonNode> response = rest.getForEntity(url("/v3/api-docs"), JsonNode.class);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertFalse(response.getBody().path("paths").isEmpty());
+    }
+
+    @Test
     void readsOccurrenceContextFromSharedDatabaseAndSkipsDeletedOccurrences() {
         createOccurrenceTables();
         jdbcTemplate.update("INSERT INTO TB_MUNICIPIO (ID_MUNICIPIO, NOME, UF) VALUES (?, ?, ?)",
